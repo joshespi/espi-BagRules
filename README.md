@@ -6,15 +6,16 @@ A custom Clean Up for World of Warcraft (retail 12.x and WoW Forever). It replac
 
 Your general bags are sorted into this order, in the order the slots are shown on screen:
 
-1. **Set gear**: gear that belongs to an equipment set. One block per set, sets ordered by the spec they're assigned to (unassigned sets last, by name), pieces in paperdoll order.
-2. **Toy gear**: gear you keep for its Use effect rather than to wear: the guild teleport cloaks (Shroud of Cooperation, Wrap of Unity, Cloak of Coordination).
-3. **Heirloom**: heirloom gear that isn't in a set.
-4. **Other**: everything else, by item type, quality, item level and name.
-5. **BoE**: gear you can still trade or send to an alt: not bound yet, Warbound, or Warbound until equipped.
-6. *(empty slots)*
-7. **Conjured**: Healthstones, mage food and other conjured items.
-8. **Junk**: poor quality items.
-9. **Bound**: bound gear that isn't in a set, in the very last slots.
+1. **Tools**: profession and rogue tools (Mining Pick, Skinning Knife, fishing poles, enchanting rods, Thieves' Tools and so on), kept first so they're never sold by accident.
+2. **Set gear**: gear that belongs to an equipment set. One block per set, sets ordered by the spec they're assigned to (unassigned sets last, by name), pieces in paperdoll order.
+3. **Toy gear**: gear you keep for its Use effect rather than to wear: the guild teleport cloaks (Shroud of Cooperation, Wrap of Unity, Cloak of Coordination).
+4. **Heirloom**: heirloom gear that isn't in a set.
+5. **Other**: everything else, by item type, quality, item level and name.
+6. **BoE**: gear you can still trade or send to an alt: not bound yet, Warbound, or Warbound until equipped.
+7. *(empty slots)*
+8. **Conjured**: Healthstones, mage food and other conjured items.
+9. **Junk**: poor quality items.
+10. **Bound**: bound gear that isn't in a set, in the very last slots.
 
 Conjured, Junk and Bound form the bottom block, pinned to the last slots. `/bagrules pin` turns the pinning off, which packs them right after BoE with no gap.
 

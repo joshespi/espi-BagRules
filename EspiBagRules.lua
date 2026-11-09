@@ -41,10 +41,24 @@ local frame = CreateFrame("Frame")
 
 -- in layout order; pinned sections form the bottom block in the last slots
 local SECTIONS = {
-    { name = "SetGear" }, { name = "ToyGear" }, { name = "Heirloom" }, { name = "Other" }, { name = "BoE" },
-    { name = "Conjured", pinned = true }, { name = "Junk", pinned = true }, { name = "Bound", pinned = true },
+    { name = "Tools" }, { name = "SetGear" }, { name = "ToyGear" }, { name = "Heirloom" }, { name = "Other" },
+    { name = "BoE" }, { name = "Conjured", pinned = true }, { name = "Junk", pinned = true }, { name = "Bound", pinned = true },
 }
-local SETGEAR, TOYGEAR, HEIRLOOM, OTHER, BOE, CONJURED, JUNK, BOUND = 1, 2, 3, 4, 5, 6, 7, 8 -- indices into SECTIONS
+local TOOLS, SETGEAR, TOYGEAR, HEIRLOOM, OTHER, BOE, CONJURED, JUNK, BOUND = 1, 2, 3, 4, 5, 6, 7, 8, 9 -- indices into SECTIONS
+
+-- profession and rogue tools, kept first so they're never sold by accident. Newer tools are
+-- ItemClass.Profession and fishing poles are a weapon subclass; these are the classic ones
+-- (some are typed as weapons or misc, so they're matched by ID before anything else).
+local TOOL_IDS = {
+    [2901] = true,  -- Mining Pick
+    [5956] = true,  -- Blacksmith Hammer
+    [7005] = true,  -- Skinning Knife
+    [6219] = true,  -- Arclight Spanner
+    [5060] = true,  -- Thieves' Tools
+    [6218] = true, [6339] = true, [11130] = true, [11145] = true, [16207] = true, -- Runed Copper..Arcanite Rod
+    [20815] = true, -- Jeweler's Kit
+    [20824] = true, -- Simple Grinder
+}
 
 -- gear kept for its Use effect, not to wear: sorts like a toy
 local TOYGEAR_IDS = {
@@ -93,6 +107,13 @@ local function IsConjured(bag, slot, itemID)
         end
     end
     return conjured[itemID]
+end
+
+local FISHING_POLE = Enum.ItemWeaponSubclass and Enum.ItemWeaponSubclass.Fishingpole or 20
+local function IsTool(itemID, classID, subClassID)
+    return TOOL_IDS[itemID] == true
+        or (Enum.ItemClass.Profession ~= nil and classID == Enum.ItemClass.Profession)
+        or (classID == Enum.ItemClass.Weapon and subClassID == FISHING_POLE)
 end
 
 local function IsGear(classID, equipLoc)
@@ -154,7 +175,9 @@ local function Classify(bag, slot, info, sets, general)
         reagent = select(17, C_Item.GetItemInfo(itemID)) == true, -- isCraftingReagent
     }
 
-    if quality == Enum.ItemQuality.Poor then
+    if IsTool(itemID, classID, subClassID) then
+        rec.section = TOOLS
+    elseif quality == Enum.ItemQuality.Poor then
         rec.section = JUNK
     elseif not general then
         rec.section = OTHER

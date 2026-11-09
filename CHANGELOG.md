@@ -1,5 +1,9 @@
 # EspiBagRules
 
+## 1.4.0
+
+- New Tools section at the very top of the bags: profession tools, fishing poles, enchanting rods, Thieves' Tools and other tools sort first so they're never sold by accident, even when poor quality.
+
 ## 1.3.1
 
 - Supports the WoW Forever client (interface 16001) alongside retail.
