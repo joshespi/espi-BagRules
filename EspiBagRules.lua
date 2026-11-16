@@ -39,16 +39,48 @@ local frame = CreateFrame("Frame")
 
 -- Classification ------------------------------------------------------------
 
--- in layout order; pinned sections form the bottom block in the last slots
-local SECTIONS = {
-    { name = "Tools" }, { name = "SetGear" }, { name = "ToyGear" }, { name = "Heirloom" }, { name = "Other" },
-    { name = "BoE" }, { name = "Conjured", pinned = true }, { name = "Junk", pinned = true }, { name = "Bound", pinned = true },
-}
-local TOOLS, SETGEAR, TOYGEAR, HEIRLOOM, OTHER, BOE, CONJURED, JUNK, BOUND = 1, 2, 3, 4, 5, 6, 7, 8, 9 -- indices into SECTIONS
+-- Section indices determine layout order. Pinned sections go in the last slots.
+local CAMPING, TOOLS, SETGEAR, TOYGEAR, HEIRLOOM, OTHER, BOE, CONJURED, JUNK, BOUND =
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
--- profession and rogue tools, kept first so they're never sold by accident. Newer tools are
+local SECTIONS = {
+    [CAMPING] = { name = "Camping" },
+    [TOOLS] = { name = "Tools" },
+    [SETGEAR] = { name = "SetGear" },
+    [TOYGEAR] = { name = "ToyGear" },
+    [HEIRLOOM] = { name = "Heirloom" },
+    [OTHER] = { name = "Other" },
+    [BOE] = { name = "BoE" },
+    [CONJURED] = { name = "Conjured", pinned = true },
+    [JUNK] = { name = "Junk", pinned = true },
+    [BOUND] = { name = "Bound", pinned = true },
+}
+
+-- WoW Forever campfire kits and camp features:
+-- https://www.wowhead.com/forever/guide/camping-overview-unlock-rewards
+local CAMPING_IDS = {
+    [279981] = true, [279961] = true, [279974] = true, -- Basic, Journeyman, Expert Campfire Kits
+    [279957] = true, [279982] = true, -- Cookie's Feast, Iron Oven
+    [279956] = true, [279970] = true, [279990] = true, -- Mana Well, Fermenter, Alchemy Laboratory
+    [279944] = true, [279988] = true, [279955] = true, -- Sharpening Wheel, Anvil, Master Forge
+    [279976] = true, [279985] = true, [279987] = true, -- Enchanted Lute, Arcane Salvager, Arcane Forge
+    [279950] = true, [279949] = true, [279989] = true, -- Reagent Bot, Repair Bot, Anarchist's Workbench
+    [279962] = true, [279964] = true, [279947] = true, -- Incense Candle, Greenhouse, Seed Hybridizer
+    [279978] = true, [279941] = true, [279945] = true, -- Camp Tent, Tanning Rack, Sewing Machine
+    [279960] = true, [279948] = true, [279952] = true, -- Lodestone, Rock Garden, Molten Foundry
+    [279979] = true, [279969] = true, [279938] = true, -- Camp Chair, Field Guide, Trapper's Workbench
+    [279972] = true, [279973] = true, -- Faction Banners (Horde and Alliance)
+    [279943] = true, [279959] = true, -- Spinning Wheel, Loom
+    [279968] = true, [279940] = true, [279951] = true, -- First Aid Kit, Toxin Study, Plague Doctor's Laboratory
+    [279967] = true, [279965] = true, [279966] = true, -- Fish Bowl, Fishing Rack, Fishing Hut
+    -- not in the guide above:
+    [211527] = true, -- Cozy Sleeping Bag
+    [289439] = true, -- Pouch of Violet Dust
+}
+
+-- profession and rogue tools, kept near the front for easy access. Newer tools are
 -- ItemClass.Profession and fishing poles are a weapon subclass; these are the classic ones
--- (some are typed as weapons or misc, so they're matched by ID before anything else).
+-- (some are typed as weapons or misc, so they're matched by ID).
 local TOOL_IDS = {
     [2901] = true,  -- Mining Pick
     [5956] = true,  -- Blacksmith Hammer
@@ -154,7 +186,7 @@ end
 
 local loc = ItemLocation and ItemLocation:CreateEmpty() -- reused: Classify never keeps it
 
--- general == false: a reagent or profession bag, where everything is Other or Junk
+-- reagent and profession bags use Camping, Tools, Other and Junk
 local function Classify(bag, slot, info, sets, general)
     local itemID = info.itemID
     local count = info.stackCount or 1
@@ -175,7 +207,9 @@ local function Classify(bag, slot, info, sets, general)
         reagent = select(17, C_Item.GetItemInfo(itemID)) == true, -- isCraftingReagent
     }
 
-    if IsTool(itemID, classID, subClassID) then
+    if CAMPING_IDS[itemID] then
+        rec.section = CAMPING
+    elseif IsTool(itemID, classID, subClassID) then
         rec.section = TOOLS
     elseif quality == Enum.ItemQuality.Poor then
         rec.section = JUNK
@@ -363,12 +397,18 @@ local function Stop(reason)
 end
 
 local function Done(stuck)
-    local locked = stuck > 0 and ("; %d locked items not moved"):format(stuck) or ""
-    if run.moves + run.merges == 0 then
-        Say("already sorted" .. locked)
+    local message = "already sorted"
+    if run.moves + run.merges > 0 then
+        message = ("sorted: %d moves, %d merges, %d passes, %.1fs"):format(
+            run.moves, run.merges, run.passes, GetTime() - run.start)
+    end
+    local locked = stuck > 0 and ("%d locked items not moved"):format(stuck)
+    local result = locked and (message .. "; " .. locked) or message
+    if db.debug then
+        Say(result)
     else
-        Say(("sorted: %d moves, %d merges, %d passes, %.1fs%s"):format(
-            run.moves, run.merges, run.passes, GetTime() - run.start, locked))
+        Log(result)
+        if locked then Print(locked) end
     end
     Stop()
 end
@@ -495,6 +535,9 @@ end
 -- does the item belong in this special bag? Profession bags (family ~= 0) take their own item
 -- types; a family-less reagent bag takes crafting reagents
 local function FitsBag(region, r)
+    -- keep camping items at the front of the general bags. One already in a special bag stays put:
+    -- this pass only fills special bags, it never empties them
+    if r.section == CAMPING then return false end
     if region.family ~= 0 then
         local fam = (C_Item.GetItemFamily or GetItemFamily)(r.itemID) or 0
         return bit.band(fam, region.family) ~= 0
@@ -622,9 +665,11 @@ local function Sort()
     for _, region in ipairs(regions) do labels[#labels + 1] = region.label end
     Log("sort: " .. table.concat(labels, ", "))
     if regions[1].fallback then
-        Print("sorting by slot order, not screen order (" .. regions[1].fallback:gsub("^fallback: ", "") .. ")")
+        Print("sorting by slot order (" .. regions[1].fallback:gsub("^fallback: ", "") .. ")")
     end
-    Print("sorting... /bagrules stop to cancel")
+    if db.debug then
+        Print("sorting... /bagrules stop to cancel")
+    end
 
     run = {
         regions = regions, sets = BuildSets(), passes = 0, moves = 0, merges = 0,
