@@ -1,6 +1,6 @@
 # EspiBagRules
 
-## 1.4.0
+## 1.5.0
 
 - New Tools section at the very top of the bags: profession tools, fishing poles, enchanting rods, Thieves' Tools and other tools sort first so they're never sold by accident, even when poor quality.
 
