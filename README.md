@@ -1,5 +1,7 @@
 # EspiBagRules
 
+> **Moved.** EspiBagRules is now part of **Espi Utils** and is no longer updated here. Install Espi Utils and disable this addon; your settings are copied over on first load.
+
 A custom Clean Up for World of Warcraft (retail 12.x and WoW Forever). It puts camping items and tools at the front, keeps equipment-set gear together, puts gear you can still trade in the middle, and pins conjured items, junk and your other bound gear to the last slots.
 
 ## Layout

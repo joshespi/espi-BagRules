@@ -1,5 +1,10 @@
 # EspiBagRules
 
+## 1.5.1
+
+- Final release. EspiBagRules is now part of Espi Utils and gets no more updates. Install Espi Utils and disable this addon; your settings are copied over on first load.
+- Shows a one-time notice in chat per character. Sorting is unchanged.
+
 ## 1.5.0
 
 - New Tools section at the very top of the bags: profession tools, fishing poles, enchanting rods, Thieves' Tools and other tools sort first so they're never sold by accident, even when poor quality.

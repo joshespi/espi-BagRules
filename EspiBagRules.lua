@@ -796,6 +796,16 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         self:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_LOGIN" then
         HookButton()
+        -- final release: tell each character once that the addon moved
+        db.movedNotice = db.movedNotice or {}
+        local who = UnitName("player") .. "-" .. GetRealmName()
+        if not db.movedNotice[who] then
+            db.movedNotice[who] = true
+            C_Timer.After(5, function()
+                Print("EspiBagRules has moved into the Espi Utils addon and will get no more updates. "
+                    .. "Install Espi Utils and disable EspiBagRules; your settings carry over.")
+            end)
+        end
     elseif event == "PLAYER_REGEN_DISABLED" then
         Stop("combat started")
     end
